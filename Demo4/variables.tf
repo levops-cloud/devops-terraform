@@ -25,5 +25,5 @@ variable "ami" {
 
 variable "key_path" {
   description = "SSH Public Key path"
-  default = "/Users/levepshtein/.ssh/id_rsa.pub"
+  default = "/Users/levep/.ssh/id_rsa.pub"
 }
