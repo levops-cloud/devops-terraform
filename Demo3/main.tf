@@ -1,6 +1,6 @@
 # Define SSH key pair for our instances
 resource "aws_key_pair" "default" {
-  key_name = "devops-studens"
+  key_name   = "devops-studens"
   public_key = file(var.key_path)
 }
 
@@ -12,7 +12,7 @@ provider "aws" {
 
 # Define our VPC
 resource "aws_vpc" "default" {
-  cidr_block = var.vpc_cidr
+  cidr_block           = var.vpc_cidr
   enable_dns_hostnames = true
 
   tags = {
@@ -22,8 +22,8 @@ resource "aws_vpc" "default" {
 
 # Define the public subnet
 resource "aws_subnet" "public-subnet" {
-  vpc_id = aws_vpc.default.id
-  cidr_block = var.public_subnet_cidr
+  vpc_id            = aws_vpc.default.id
+  cidr_block        = var.public_subnet_cidr
   availability_zone = "us-west-2a"
 
   tags = {
@@ -33,8 +33,8 @@ resource "aws_subnet" "public-subnet" {
 
 # Define the private subnet
 resource "aws_subnet" "private-subnet" {
-  vpc_id = aws_vpc.default.id
-  cidr_block = var.private_subnet_cidr
+  vpc_id            = aws_vpc.default.id
+  cidr_block        = var.private_subnet_cidr
   availability_zone = "us-west-2b"
 
   tags = {
@@ -66,51 +66,51 @@ resource "aws_route_table" "web-public-rt" {
 
 # Assign the route table to the public Subnet
 resource "aws_route_table_association" "web-public-rt" {
-  subnet_id = aws_subnet.public-subnet.id
+  subnet_id      = aws_subnet.public-subnet.id
   route_table_id = aws_route_table.web-public-rt.id
 }
 
 # Define the security group for public subnet
 resource "aws_security_group" "sgweb" {
-  name = "vpc_test_web"
+  name        = "vpc_test_web"
   description = "Allow incoming HTTP connections & SSH access"
 
   ingress {
-    from_port = 80
-    to_port = 80
-    protocol = "tcp"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
-    from_port = 443
-    to_port = 443
-    protocol = "tcp"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
-    from_port = -1
-    to_port = -1
-    protocol = "icmp"
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
-    cidr_blocks =  ["0.0.0.0/0"]
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
-  from_port   = 0
-  to_port     = 0
-  protocol    = "-1"
-  cidr_blocks = ["0.0.0.0/0"]
-}
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
-  vpc_id=aws_vpc.default.id
+  vpc_id = aws_vpc.default.id
 
   tags = {
     Name = "Web Server SG"
@@ -118,28 +118,28 @@ resource "aws_security_group" "sgweb" {
 }
 
 # Define the security group for private subnet
-resource "aws_security_group" "sgdb"{
-  name = "sg_test_web"
+resource "aws_security_group" "sgdb" {
+  name        = "sg_test_web"
   description = "Allow traffic from public subnet"
 
   ingress {
-    from_port = 3306
-    to_port = 3306
-    protocol = "tcp"
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
     cidr_blocks = [var.public_subnet_cidr]
   }
 
   ingress {
-    from_port = -1
-    to_port = -1
-    protocol = "icmp"
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
     cidr_blocks = [var.public_subnet_cidr]
   }
 
   ingress {
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
     cidr_blocks = [var.public_subnet_cidr]
   }
 
@@ -153,14 +153,14 @@ resource "aws_security_group" "sgdb"{
 
 # Define webserver inside the public subnet
 resource "aws_instance" "wb" {
-   ami  = var.ami
-   instance_type = "t1.micro"
-   key_name = aws_key_pair.default.id
-   subnet_id = aws_subnet.public-subnet.id
-   vpc_security_group_ids = [aws_security_group.sgweb.id]
-   associate_public_ip_address = true
-   source_dest_check = false
-   user_data = file("install.sh")
+  ami                         = var.ami
+  instance_type               = "t1.micro"
+  key_name                    = aws_key_pair.default.id
+  subnet_id                   = aws_subnet.public-subnet.id
+  vpc_security_group_ids      = [aws_security_group.sgweb.id]
+  associate_public_ip_address = true
+  source_dest_check           = false
+  user_data                   = file("install.sh")
 
   tags = {
     Name = "webserver"
@@ -169,12 +169,12 @@ resource "aws_instance" "wb" {
 
 # Define database inside the private subnet
 resource "aws_instance" "db" {
-   ami  = var.ami
-   instance_type = "t1.micro"
-   key_name = aws_key_pair.default.id
-   subnet_id = aws_subnet.private-subnet.id
-   vpc_security_group_ids = [aws_security_group.sgdb.id]
-   source_dest_check = false
+  ami                    = var.ami
+  instance_type          = "t1.micro"
+  key_name               = aws_key_pair.default.id
+  subnet_id              = aws_subnet.private-subnet.id
+  vpc_security_group_ids = [aws_security_group.sgdb.id]
+  source_dest_check      = false
 
   tags = {
     Name = "database"
